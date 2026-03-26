@@ -56,7 +56,7 @@ public class ExportService
 
 		ws.Column(10).Style.NumberFormat.Format = "0.000000000";
 
-		int ultimaLinha = dados.Count + 1; // +1 por causa do header
+		int ultimaLinha = dados.Count + 1;
 		int linhaTotal = ultimaLinha + 1;
 
 		ws.Cell(linhaTotal, 1).Value = "TOTAL";
@@ -133,9 +133,6 @@ public class ExportService
 	{
 		using var wb = new XLWorkbook();
 
-		// =========================
-		// ABA 1 - TABELA ORIGINAL
-		// =========================
 		var ws1 = wb.Worksheets.Add("Dados");
 
 		ws1.Cell(1, 1).Value = "Ocorrência";
@@ -183,7 +180,6 @@ public class ExportService
 		ws1.Column(8).Style.NumberFormat.Format = "0.00%";
 		ws1.Column(10).Style.NumberFormat.Format = "0.000000000";
 
-		// TOTAL
 		if (tabela1.Any())
 		{
 			int ultimaLinha = tabela1.Count + 1;
@@ -201,9 +197,6 @@ public class ExportService
 			totalRow.Style.Border.TopBorder = XLBorderStyleValues.Thin;
 		}
 
-		// =========================
-		// ABA 2 - RESUMO
-		// =========================
 		var ws2 = wb.Worksheets.Add("Resumo");
 
 		ws2.Cell(1, 1).Value = "Ocorrência";
@@ -248,6 +241,24 @@ public class ExportService
 
 		ws2.Column(5).Style.NumberFormat.Format = "0.00%";
 		ws2.Column(7).Style.NumberFormat.Format = "0.000000000";
+
+		if (tabela2.Any())
+		{
+			int ultimaLinha = tabela2.Count + 1;
+			int linhaTotal = ultimaLinha + 1;
+
+			ws2.Cell(linhaTotal, 1).Value = "TOTAL";
+
+			ws2.Cell(linhaTotal, 4).FormulaA1 = $"SUM(D2:D{ultimaLinha})"; // Salário Contribuição
+			ws2.Cell(linhaTotal, 6).FormulaA1 = $"SUM(F2:F{ultimaLinha})"; // Devido Segurado
+			ws2.Cell(linhaTotal, 8).FormulaA1 = $"SUM(H2:H{ultimaLinha})"; // Valor Corrigido
+			ws2.Cell(linhaTotal, 9).FormulaA1 = $"SUM(I2:I{ultimaLinha})"; // Juros
+			ws2.Cell(linhaTotal, 11).FormulaA1 = $"SUM(K2:K{ultimaLinha})"; // Total
+
+			var totalRow = ws2.Row(linhaTotal);
+			totalRow.Style.Font.Bold = true;
+			totalRow.Style.Border.TopBorder = XLBorderStyleValues.Thin;
+		}
 
 		wb.SaveAs(caminho);
 	}

@@ -28,7 +28,16 @@ namespace Pdf2Xls.UI
 				_arquivos = Helpers.FileHelper.ObterPdfs(txtPasta.Text);
 
 				cmbArquivos.DataSource = null;
-				cmbArquivos.DataSource = _arquivos;
+				cmbArquivos.DataSource = _arquivos
+					.Select(x => new
+					{
+						Nome = Path.GetFileName(x),
+						Caminho = x
+					})
+					.ToList();
+
+				cmbArquivos.DisplayMember = "Nome";
+				cmbArquivos.ValueMember = "Caminho";
 			}
 		}
 
@@ -40,15 +49,12 @@ namespace Pdf2Xls.UI
 				return;
 			}
 
-			var arquivo = cmbArquivos.SelectedItem.ToString();
+			var arquivo = cmbArquivos.SelectedValue.ToString(); 
 			var processador = new Core.ProcessadorPdf();
 
 			_dados = processador.Processar(arquivo);
 			_dadosResumo = processador.ProcessarResumo(arquivo);
 
-			// =========================
-			// GRID 1 (Tabela original)
-			// =========================
 			dataGridView1.DataSource = null;
 			dataGridView1.DataSource = _dados;
 
@@ -69,9 +75,6 @@ namespace Pdf2Xls.UI
 				dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 			}
 
-			// =========================
-			// GRID 2 (Resumo)
-			// =========================
 			dataGridView2.DataSource = null;
 			dataGridView2.DataSource = _dadosResumo;
 
@@ -110,7 +113,6 @@ namespace Pdf2Xls.UI
 			{
 				var export = new Services.ExportService();
 
-				// 🔥 AGORA EXPORTA AS DUAS
 				export.ExportarExcelCompleto(_dados, _dadosResumo, sfd.FileName);
 
 				MessageBox.Show("Exportado com sucesso!");
@@ -151,7 +153,6 @@ namespace Pdf2Xls.UI
 					var nomeArquivo = Path.GetFileNameWithoutExtension(arquivo);
 					var caminhoFinal = Path.Combine(pastaDestino, $"{nomeArquivo}.xlsx");
 
-					// 🔥 EXPORTAÇÃO COMPLETA
 					export.ExportarExcelCompleto(dados, resumo, caminhoFinal);
 
 					sucesso++;
@@ -179,9 +180,6 @@ namespace Pdf2Xls.UI
 
 		private void AplicarTemaControle(Control ctrl)
 		{
-			// =========================
-			// TIPOS DE CONTROLE
-			// =========================
 			switch (ctrl)
 			{
 				case TextBox txt:
@@ -221,12 +219,33 @@ namespace Pdf2Xls.UI
 					break;
 			}
 
-			// =========================
-			// APLICAR NOS FILHOS (RECUSIVO)
-			// =========================
 			foreach (Control child in ctrl.Controls)
 			{
 				AplicarTemaControle(child);
+			}
+		}
+
+		private void btnAbrirModel_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				var caminho = Path.Combine(Application.StartupPath,"Resources", "modelo.pdf");
+
+				if (!File.Exists(caminho))
+				{
+					MessageBox.Show("Modelo não encontrado!");
+					return;
+				}
+
+				System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+				{
+					FileName = caminho,
+					UseShellExecute = true
+				});
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Erro ao abrir modelo: {ex.Message}");
 			}
 		}
 	}

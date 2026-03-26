@@ -10,8 +10,6 @@ public class TableParserService
 	{
 		var resultado = new List<LinhaTabela>();
 
-		Console.WriteLine("===== INÍCIO PARSER =====");
-		
 		texto = ExtrairBlocoTabela(texto);
 		texto = texto.Replace("INDICAÇÃO DE PARCELAS", "\nINDICAÇÃO DE PARCELAS");
 
@@ -20,12 +18,8 @@ public class TableParserService
 			.Where(x => !string.IsNullOrWhiteSpace(x))
 			.ToList();
 
-		Console.WriteLine($"Total de linhas após split: {linhas.Count}");
-
 		foreach (var linhaOriginal in linhas)
 		{
-			Console.WriteLine($"\nORIGINAL: {linhaOriginal}");
-
 			var linha = linhaOriginal;
 
 			if (!Regex.IsMatch(linha, @"^\d{2}/\d{4}"))
@@ -38,11 +32,7 @@ public class TableParserService
 			linha = Regex.Replace(linha, @"(\d+,\d+)\s+0{6,}", "$1");
 			linha = Regex.Replace(linha, @"(\d+,\d+)\s+\1", "$1");
 
-			Console.WriteLine($"DEPOIS LIMPEZA: {linha}");
-
 			linha = NormalizarLinha(linha);
-
-			Console.WriteLine($"NORMALIZADA: {linha}");
 
 			var match = Regex.Match(linha, @"
 				^(?<comp>\d{2}/\d{4})\s+
@@ -57,12 +47,6 @@ public class TableParserService
 				(?<indice>\d+,\d{2})\s+
 				(?<corrigido>\d+,\d{2})
 				", RegexOptions.IgnorePatternWhitespace);
-
-			if (!match.Success)
-			{
-				Console.WriteLine(">> IGNORADO (regex não casou)");
-				continue;
-			}
 
 			try
 			{
@@ -88,8 +72,6 @@ public class TableParserService
 				Console.WriteLine($">> ERRO: {ex.Message}");
 			}
 		}
-
-		Console.WriteLine($"===== TOTAL: {resultado.Count} =====");
 
 		return resultado
 			.GroupBy(x => x.Ocorrencia)
@@ -150,18 +132,18 @@ public class TableParserService
 			linha = NormalizarLinhaResumo(linha);
 
 			var match = Regex.Match(linha, @"
-			^(?<comp>\d{2}/\d{4})\s+
-			(?<salPago>\d+,\d{2})\s+
-			(?<salDevido>\d+,\d{2})\s+
-			(?<salContrib>\d+,\d{2})\s+
-			(?<aliq>\d+,\d{2})\s+%\s+
-			(?<devido>\d+,\d{2})\s+
-			(?<indice>\d+,\d{9})\s+
-			(?<corrigido>\d+,\d{2})\s+
-			(?<juros>\d+,\d{2})\s+
-			(?<multa>-|\d+,\d{2})\s+
-			(?<total>\d+,\d{2})
-		", RegexOptions.IgnorePatternWhitespace);
+				^(?<comp>\d{2}/\d{4})\s+
+				(?<salPago>\d+,\d{2})\s+
+				(?<salDevido>\d+,\d{2})\s+
+				(?<salContrib>\d+,\d{2})\s+
+				(?<aliq>\d+,\d{2})\s+%\s+
+				(?<devido>\d+,\d{2})\s+
+				(?<indice>\d+,\d{9})\s+
+				(?<corrigido>\d+,\d{2})\s+
+				(?<juros>\d+,\d{2})\s+
+				(?<multa>-|\d+,\d{2})\s+
+				(?<total>\d+,\d{2})
+			", RegexOptions.IgnorePatternWhitespace);
 
 			if (!match.Success)
 				continue;

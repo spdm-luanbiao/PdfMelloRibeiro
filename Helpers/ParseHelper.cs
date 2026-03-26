@@ -9,9 +9,7 @@ public static class ParseHelper
 		if (string.IsNullOrWhiteSpace(valor)) return 0;
 
 		valor = valor.Replace(".", "").Replace(",", ".");
-		return decimal.TryParse(valor, NumberStyles.Any, CultureInfo.InvariantCulture, out var result)
-			? result
-			: 0;
+		return decimal.TryParse(valor, NumberStyles.Any, CultureInfo.InvariantCulture, out var result) ? result : 0;
 	}
 
 	public static decimal ParsePercent(string valor)
