@@ -36,6 +36,7 @@
 		private Button btnModelo;
 		private void InitializeComponent()
 		{
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
 			txtPasta = new TextBox();
 			btnSelecionar = new Button();
 			btnProcessar = new Button();
@@ -47,7 +48,6 @@
 			pictureBox1 = new PictureBox();
 			label1 = new Label();
 			btnAbrirModel = new Button();
-
 			((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
 			((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
 			((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -148,7 +148,7 @@
 			btnAbrirModel.TabIndex = 10;
 			btnAbrirModel.Text = "Modelo";
 			btnAbrirModel.UseVisualStyleBackColor = true;
-			btnAbrirModel.Click += btnAbrirModel_Click; 
+			btnAbrirModel.Click += btnAbrirModel_Click;
 			// 
 			// MainForm
 			// 
@@ -164,6 +164,7 @@
 			Controls.Add(btnExportar);
 			Controls.Add(btnExportarLote);
 			Controls.Add(dataGridView1);
+			Icon = (Icon)resources.GetObject("$this.Icon");
 			Name = "MainForm";
 			Text = "PDF → Excel | Mello Ribeiro";
 			((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
