@@ -13,4 +13,10 @@ public class ProcessadorPdf
 		var texto = _reader.LerTexto(caminhoPdf);
 		return _parser.Parse(texto);
 	}
+
+	public List<LinhaTabelaResumo> ProcessarResumo(string caminhoPdf)
+	{
+		var texto = _reader.LerTexto(caminhoPdf);
+		return _parser.ParseTabelaResumo(texto);
+	}
 }

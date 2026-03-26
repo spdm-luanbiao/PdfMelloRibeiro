@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Pdf2Xls.UI
@@ -15,10 +10,12 @@ namespace Pdf2Xls.UI
 		public MainForm()
 		{
 			InitializeComponent();
+			AplicarTemaDark();
 		}
 
 		private List<string> _arquivos = new();
 		private List<Models.LinhaTabela> _dados = new();
+		private List<Models.LinhaTabelaResumo> _dadosResumo = new();
 
 		private void btnSelecionar_Click(object sender, EventArgs e)
 		{
@@ -34,6 +31,7 @@ namespace Pdf2Xls.UI
 				cmbArquivos.DataSource = _arquivos;
 			}
 		}
+
 		private void btnProcessar_Click(object sender, EventArgs e)
 		{
 			if (cmbArquivos.SelectedItem == null)
@@ -43,27 +41,80 @@ namespace Pdf2Xls.UI
 			}
 
 			var arquivo = cmbArquivos.SelectedItem.ToString();
-
 			var processador = new Core.ProcessadorPdf();
 
 			_dados = processador.Processar(arquivo);
+			_dadosResumo = processador.ProcessarResumo(arquivo);
 
+			// =========================
+			// GRID 1 (Tabela original)
+			// =========================
 			dataGridView1.DataSource = null;
 			dataGridView1.DataSource = _dados;
 
-			dataGridView1.Columns["Ocorrencia"].HeaderText = "Ocorrência";
-			dataGridView1.Columns["SalarioPago"].HeaderText = "Salário Pago";
-			dataGridView1.Columns["Aliquota1"].HeaderText = "Alíquota";
-			dataGridView1.Columns["TetoSegurado"].HeaderText = "Teto Segurado";
-			dataGridView1.Columns["ContribuicaoSocial"].HeaderText = "Contribuição Social";
-			dataGridView1.Columns["SalarioDevido"].HeaderText = "Salário Devido";
-			dataGridView1.Columns["SalarioContribuicao"].HeaderText = "Salário de Contribuição";
-			dataGridView1.Columns["Aliquota2"].HeaderText = "Alíquota";
-			dataGridView1.Columns["DevidoSegurado"].HeaderText = "Devido Segurado";
-			dataGridView1.Columns["IndiceCorrecao"].HeaderText = "Índice Correção";
-			dataGridView1.Columns["ValorCorrigido"].HeaderText = "Valor Corrigido";
+			if (_dados.Any())
+			{
+				dataGridView1.Columns["Ocorrencia"].HeaderText = "Ocorrência";
+				dataGridView1.Columns["SalarioPago"].HeaderText = "Salário Pago";
+				dataGridView1.Columns["Aliquota1"].HeaderText = "Alíquota";
+				dataGridView1.Columns["TetoSegurado"].HeaderText = "Teto Segurado";
+				dataGridView1.Columns["ContribuicaoSocial"].HeaderText = "Contribuição Social";
+				dataGridView1.Columns["SalarioDevido"].HeaderText = "Salário Devido";
+				dataGridView1.Columns["SalarioContribuicao"].HeaderText = "Salário de Contribuição";
+				dataGridView1.Columns["Aliquota2"].HeaderText = "Alíquota";
+				dataGridView1.Columns["DevidoSegurado"].HeaderText = "Devido Segurado";
+				dataGridView1.Columns["IndiceCorrecao"].HeaderText = "Índice Correção";
+				dataGridView1.Columns["ValorCorrigido"].HeaderText = "Valor Corrigido";
 
-			dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+				dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+			}
+
+			// =========================
+			// GRID 2 (Resumo)
+			// =========================
+			dataGridView2.DataSource = null;
+			dataGridView2.DataSource = _dadosResumo;
+
+			if (_dadosResumo.Any())
+			{
+				dataGridView2.Columns["Ocorrencia"].HeaderText = "Ocorrência";
+				dataGridView2.Columns["SalarioPago"].HeaderText = "Salário Pago";
+				dataGridView2.Columns["SalarioDevido"].HeaderText = "Salário Devido";
+				dataGridView2.Columns["SalarioContribuicao"].HeaderText = "Salário Contribuição";
+				dataGridView2.Columns["Aliquota"].HeaderText = "Alíquota";
+				dataGridView2.Columns["DevidoSegurado"].HeaderText = "Devido Segurado";
+				dataGridView2.Columns["IndiceCorrecao"].HeaderText = "Índice Correção";
+				dataGridView2.Columns["ValorCorrigido"].HeaderText = "Valor Corrigido";
+				dataGridView2.Columns["Juros"].HeaderText = "Juros";
+				dataGridView2.Columns["Multa"].HeaderText = "Multa";
+				dataGridView2.Columns["Total"].HeaderText = "Total";
+
+				dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+			}
+		}
+
+		private void btnExportar_Click(object sender, EventArgs e)
+		{
+			if ((_dados == null || !_dados.Any()) && (_dadosResumo == null || !_dadosResumo.Any()))
+			{
+				MessageBox.Show("Nada para exportar!");
+				return;
+			}
+
+			var sfd = new SaveFileDialog
+			{
+				Filter = "Excel (*.xlsx)|*.xlsx"
+			};
+
+			if (sfd.ShowDialog() == DialogResult.OK)
+			{
+				var export = new Services.ExportService();
+
+				// 🔥 AGORA EXPORTA AS DUAS
+				export.ExportarExcelCompleto(_dados, _dadosResumo, sfd.FileName);
+
+				MessageBox.Show("Exportado com sucesso!");
+			}
 		}
 
 		private void btnExportarLote_Click(object sender, EventArgs e)
@@ -92,14 +143,16 @@ namespace Pdf2Xls.UI
 				try
 				{
 					var dados = processador.Processar(arquivo);
+					var resumo = processador.ProcessarResumo(arquivo);
 
-					if (dados == null || !dados.Any())
+					if (!dados.Any() && !resumo.Any())
 						continue;
 
 					var nomeArquivo = Path.GetFileNameWithoutExtension(arquivo);
 					var caminhoFinal = Path.Combine(pastaDestino, $"{nomeArquivo}.xlsx");
 
-					export.ExportarExcel(dados, caminhoFinal);
+					// 🔥 EXPORTAÇÃO COMPLETA
+					export.ExportarExcelCompleto(dados, resumo, caminhoFinal);
 
 					sucesso++;
 				}
@@ -113,25 +166,67 @@ namespace Pdf2Xls.UI
 			MessageBox.Show($"Exportação concluída!\n\nSucesso: {sucesso}\nErros: {erro}");
 		}
 
-		private void btnExportar_Click(object sender, EventArgs e)
+		private void AplicarTemaDark()
 		{
-			if (_dados == null || !_dados.Any())
+			this.BackColor = Color.FromArgb(30, 30, 30);
+			this.ForeColor = Color.White;
+
+			foreach (Control ctrl in this.Controls)
 			{
-				MessageBox.Show("Nada para exportar!");
-				return;
+				AplicarTemaControle(ctrl);
+			}
+		}
+
+		private void AplicarTemaControle(Control ctrl)
+		{
+			// =========================
+			// TIPOS DE CONTROLE
+			// =========================
+			switch (ctrl)
+			{
+				case TextBox txt:
+					txt.BackColor = Color.FromArgb(45, 45, 45);
+					txt.ForeColor = Color.White;
+					txt.BorderStyle = BorderStyle.FixedSingle;
+					break;
+
+				case ComboBox cmb:
+					cmb.BackColor = Color.FromArgb(45, 45, 45);
+					cmb.ForeColor = Color.White;
+					break;
+
+				case Button btn:
+					btn.BackColor = Color.FromArgb(60, 60, 60);
+					btn.ForeColor = Color.White;
+					btn.FlatStyle = FlatStyle.Flat;
+					btn.FlatAppearance.BorderColor = Color.FromArgb(80, 80, 80);
+					btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(80, 80, 80);
+					btn.FlatAppearance.MouseDownBackColor = Color.FromArgb(100, 100, 100);
+					break;
+
+				case DataGridView dgv:
+					dgv.BackgroundColor = Color.FromArgb(30, 30, 30);
+					dgv.EnableHeadersVisualStyles = false;
+
+					dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(45, 45, 45);
+					dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+
+					dgv.DefaultCellStyle.BackColor = Color.FromArgb(30, 30, 30);
+					dgv.DefaultCellStyle.ForeColor = Color.White;
+
+					dgv.RowsDefaultCellStyle.BackColor = Color.FromArgb(30, 30, 30);
+					dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(40, 40, 40);
+
+					dgv.GridColor = Color.FromArgb(60, 60, 60);
+					break;
 			}
 
-			var sfd = new SaveFileDialog
+			// =========================
+			// APLICAR NOS FILHOS (RECUSIVO)
+			// =========================
+			foreach (Control child in ctrl.Controls)
 			{
-				Filter = "Excel (*.xlsx)|*.xlsx"
-			};
-
-			if (sfd.ShowDialog() == DialogResult.OK)
-			{
-				var export = new Services.ExportService();
-				export.ExportarExcel(_dados, sfd.FileName);
-
-				MessageBox.Show("Exportado com sucesso!");
+				AplicarTemaControle(child);
 			}
 		}
 	}
