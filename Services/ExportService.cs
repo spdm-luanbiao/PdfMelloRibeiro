@@ -8,7 +8,7 @@ public class ExportService
 	public void ExportarExcel(List<LinhaTabela> dados, string caminho)
 	{
 		using var wb = new XLWorkbook();
-		var ws = wb.Worksheets.Add("Dados");
+		var ws = wb.Worksheets.Add("Planilha 1");
 
 		ws.Cell(1, 1).Value = "Ocorrência";
 		ws.Cell(1, 2).Value = "Salário Pago";
@@ -77,7 +77,7 @@ public class ExportService
 	public void ExportarExcelResumo(List<LinhaTabelaResumo> dados, string caminho)
 	{
 		using var wb = new XLWorkbook();
-		var ws = wb.Worksheets.Add("Resumo");
+		var ws = wb.Worksheets.Add("Planilha 2");
 
 		ws.Cell(1, 1).Value = "Ocorrência";
 		ws.Cell(1, 2).Value = "Salário Pago";
