@@ -133,7 +133,7 @@ public class ExportService
 	{
 		using var wb = new XLWorkbook();
 
-		var ws1 = wb.Worksheets.Add("Dados");
+		var ws1 = wb.Worksheets.Add("Planilha 1");
 
 		ws1.Cell(1, 1).Value = "Ocorrência";
 		ws1.Cell(1, 2).Value = "Salário Pago";
@@ -197,7 +197,7 @@ public class ExportService
 			totalRow.Style.Border.TopBorder = XLBorderStyleValues.Thin;
 		}
 
-		var ws2 = wb.Worksheets.Add("Resumo");
+		var ws2 = wb.Worksheets.Add("Planilha 2");
 
 		ws2.Cell(1, 1).Value = "Ocorrência";
 		ws2.Cell(1, 2).Value = "Salário Pago";
